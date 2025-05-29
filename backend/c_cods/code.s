@@ -7,47 +7,136 @@
 	.text
 	.section	.rodata.str1.1,"aMS",@progbits,1
 .LC0:
-	.string	"Hello, %s!\n"
-	.text
-	.p2align 4
-	.globl	greet
-	.type	greet, @function
-greet:
-.LFB11:
-	.cfi_startproc
-# code.c:3: void greet(const char *name) {
-	movq	%rdi, %rsi	# name, name
-# code.c:4: 	printf("Hello, %s!\n", name);
-	xorl	%eax, %eax	#
-	movl	$.LC0, %edi	#,
-	jmp	printf	#
-	.cfi_endproc
-.LFE11:
-	.size	greet, .-greet
-	.section	.rodata.str1.1
-.LC1:
-	.string	"Alexei"
+	.string	"Hello World"
 	.section	.text.startup,"ax",@progbits
 	.p2align 4
 	.globl	main
 	.type	main, @function
 main:
-.LFB12:
+.LFB17:
 	.cfi_startproc
-	subq	$8, %rsp	#,
-	.cfi_def_cfa_offset 16
-# code.c:4: 	printf("Hello, %s!\n", name);
-	movl	$.LC1, %esi	#,
+# code.c:91:     printf("Hello World");
 	movl	$.LC0, %edi	#,
 	xorl	%eax, %eax	#
-	call	printf	#
-# code.c:10: }
-	xorl	%eax, %eax	#
-	addq	$8, %rsp	#,
-	.cfi_def_cfa_offset 8
-	ret	
+	jmp	printf	#
 	.cfi_endproc
-.LFE12:
+.LFE17:
 	.size	main, .-main
+	.globl	microcode
+	.data
+	.align 32
+	.type	microcode, @object
+	.size	microcode, 6144
+microcode:
+	.long	0
+	.long	1
+	.long	12
+	.long	12
+	.long	12
+	.long	12
+	.long	0
+	.long	1
+	.long	2
+	.long	4
+	.long	12
+	.long	12
+	.long	0
+	.long	1
+	.long	5
+	.long	3
+	.long	12
+	.long	12
+	.long	0
+	.long	1
+	.long	4
+	.long	12
+	.long	12
+	.long	12
+	.long	0
+	.long	1
+	.long	2
+	.long	6
+	.long	12
+	.long	12
+	.long	0
+	.long	1
+	.long	2
+	.long	7
+	.long	12
+	.long	12
+	.long	0
+	.long	1
+	.long	2
+	.long	12
+	.long	12
+	.zero	4
+	.long	0
+	.long	1
+	.long	2
+	.long	12
+	.long	12
+	.zero	4
+	.long	0
+	.long	1
+	.long	2
+	.long	12
+	.long	12
+	.zero	4
+	.long	0
+	.long	1
+	.long	10
+	.long	12
+	.long	12
+	.long	12
+	.long	0
+	.long	1
+	.long	8
+	.long	12
+	.long	12
+	.long	12
+	.long	0
+	.long	1
+	.long	9
+	.long	8
+	.long	12
+	.long	12
+	.long	0
+	.long	1
+	.long	8
+	.long	12
+	.long	12
+	.zero	4
+	.long	0
+	.long	1
+	.long	8
+	.long	12
+	.long	12
+	.zero	4
+	.long	0
+	.long	1
+	.long	2
+	.long	7
+	.long	12
+	.long	12
+	.long	0
+	.long	1
+	.long	11
+	.long	12
+	.long	12
+	.long	12
+	.zero	5736
+	.long	11
+	.long	12
+	.long	12
+	.long	12
+	.long	12
+	.long	12
+	.globl	memory
+	.align 32
+	.type	memory, @object
+	.size	memory, 256
+memory:
+	.string	"\001\n\004\005\005\003\377"
+	.zero	248
 	.ident	"GCC: (GNU) 15.1.0"
 	.section	.note.GNU-stack,"",@progbits

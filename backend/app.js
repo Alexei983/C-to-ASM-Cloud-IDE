@@ -1,8 +1,10 @@
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs");
+const fs = require("fs").promises;
 const { exec } = require("child_process");
 const path = require("path");
+const util = require("util");
+const execAsync = util.promisify(exec);
 const workdir = path.resolve("./c_cods");
 
 const PORT = 5000;
@@ -13,39 +15,60 @@ app.use(cors());
 
 app.post("/runcode", async (req, res) => {
   const value = req.body.code;
-  await fs.writeFile(`${workdir}/code.c`, value, (err) => {
-    if (err) {
-      return console.log(err);
-    }
-    try {
-      exec(
-        `docker run --rm \
-           -v "${workdir}:/app" \
-           --workdir /app \
-           gcc \
-           bash -c "gcc -S -O2 -fverbose-asm code.c -o code.s"`,
-        (error, stdout, stderr) => {
-          if (error) {
-            console.error(`❌ Ошибка: ${error.message}`);
-            return;
-          }
-          if (stderr) {
-            console.error(`⚠️ Системная ошибка: ${stderr}`);
-            return;
-          }
-          console.log(`✅ Контейнер запущен: ${stdout}`);
-        },
-      );
-    } catch (e) {
-      console.log(e);
-    }
-    fs.readFile(`${workdir}/code.s`, (err, data) => {
+
+  try {
+    await fs.writeFile(`${workdir}/code.c`, value, (err) => {
       if (err) {
         return console.log(err);
       }
-      res.send(data.toString());
     });
-  });
+
+    const { stdout, stderr } = await execAsync(
+      `docker run --rm \
+      -v "${workdir}:/app" \
+      --workdir /app \
+      gcc \
+      bash -c "gcc -S -O2 -fverbose-asm code.c -o code.s"`,
+    );
+
+    if (stderr) {
+      console.error("⚠️ stderr:", stderr);
+      return res.status(400).send(stderr);
+    }
+
+    const result = await fs.readFile(`${workdir}/code.s`, "utf8");
+    res.send(result);
+  } catch (err) {
+    console.error("❌ Ошибка:", err.message);
+    res.status(500).send("Ошибка при выполнении кода.");
+  }
+});
+
+app.post("/runcodedisasm", async (req, res) => {
+  const value = req.body.code;
+
+  try {
+    await fs.writeFile(`${workdir}/code.c`, value);
+
+    const { stdout, stderr } = await execAsync(
+      `docker run --rm \
+      -v "${workdir}:/app" \
+      --workdir /app \
+      gcc \
+      bash -c "gcc -g -O2 code.c -o program && objdump -d program > disasm.s"`,
+    );
+
+    if (stderr) {
+      console.error(`⚠️ stderr: ${stderr}`);
+      return res.status(400).send(stderr);
+    }
+
+    const disasm = await fs.readFile(`${workdir}/disasm.s`, "utf8");
+    res.send(disasm);
+  } catch (err) {
+    console.error("❌ Ошибка:", err.message || err);
+    res.status(500).send("Ошибка при выполнении дизассемблирования.");
+  }
 });
 
 app.listen(PORT, () => {
