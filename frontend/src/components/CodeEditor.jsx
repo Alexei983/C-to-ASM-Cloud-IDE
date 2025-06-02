@@ -34,7 +34,7 @@ const CodeEditor = () => {
             onMount={onMount}
           />
         </Box>
-        <Output value={value} />
+        <Output language={language} value={value} />
       </HStack>
     </Box>
   );

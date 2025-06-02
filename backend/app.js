@@ -44,6 +44,37 @@ app.post("/runcode", async (req, res) => {
   }
 });
 
+app.post("/runcodecpp", async (req, res) => {
+  const value = req.body.code;
+
+  try {
+    await fs.writeFile(`${workdir}/code.cpp`, value, (err) => {
+      if (err) {
+        return console.log(err);
+      }
+    });
+
+    const { stdout, stderr } = await execAsync(
+      `docker run --rm \
+      -v "${workdir}:/app" \
+      --workdir /app \
+      gcc \
+      bash -c "gcc -x c++ code.cpp -S -lstdc++ -o codecpp.s"`,
+    );
+
+    if (stderr) {
+      console.error("⚠️ stderr:", stderr);
+      return res.status(400).send(stderr);
+    }
+
+    const result = await fs.readFile(`${workdir}/codecpp.s`, "utf8");
+    res.send(result);
+  } catch (err) {
+    console.error("❌ Ошибка:", err.message);
+    res.status(500).send("Ошибка при выполнении кода.");
+  }
+});
+
 app.post("/runcodedisasm", async (req, res) => {
   const value = req.body.code;
 
@@ -64,6 +95,33 @@ app.post("/runcodedisasm", async (req, res) => {
     }
 
     const disasm = await fs.readFile(`${workdir}/disasm.s`, "utf8");
+    res.send(disasm);
+  } catch (err) {
+    console.error("❌ Ошибка:", err.message || err);
+    res.status(500).send("Ошибка при выполнении дизассемблирования.");
+  }
+});
+
+app.post("/runcodedisasmcpp", async (req, res) => {
+  const value = req.body.code;
+
+  try {
+    await fs.writeFile(`${workdir}/code.cpp`, value);
+
+    const { stdout, stderr } = await execAsync(
+      `docker run --rm \
+      -v "${workdir}:/app" \
+      --workdir /app \
+      gcc \
+      bash -c "gcc code.cpp -lstdc++ -o main && objdump -d main > disasmcpp.s"`,
+    );
+
+    if (stderr) {
+      console.error(`⚠️ stderr: ${stderr}`);
+      return res.status(400).send(stderr);
+    }
+
+    const disasm = await fs.readFile(`${workdir}/disasmcpp.s`, "utf8");
     res.send(disasm);
   } catch (err) {
     console.error("❌ Ошибка:", err.message || err);

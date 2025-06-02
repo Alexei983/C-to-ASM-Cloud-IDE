@@ -14,41 +14,73 @@ import { useState } from "react";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { materialDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 
-const Output = ({ value }) => {
+const Output = ({ language, value }) => {
   const [asm, setAsm] = useState("");
   const [variable, setVariable] = useState("ASM");
   const [loading, setLoading] = useState(false);
 
   const onRun = (code) => {
     setLoading(true);
-    if (variable === "ASM") {
-      axios
-        .post("http://localhost:5000/runcode", {
-          code: code,
-        })
-        .then((response) => {
-          setAsm(response.data);
-          console.log(response.data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error(error);
-          setLoading(false);
-        });
-    } else if (variable === "DISASM") {
-      axios
-        .post("http://localhost:5000/runcodedisasm", {
-          code: code,
-        })
-        .then((response) => {
-          setAsm(response.data);
-          console.log(response.data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error(error);
-          setLoading(false);
-        });
+    if (language == "c") {
+      if (variable === "ASM") {
+        axios
+          .post("http://localhost:5000/runcode", {
+            code: code,
+          })
+          .then((response) => {
+            setAsm(response.data);
+            console.log(response.data);
+            setLoading(false);
+          })
+          .catch((error) => {
+            console.error(error);
+            setLoading(false);
+          });
+      } else if (variable === "DISASM") {
+        axios
+          .post("http://localhost:5000/runcodedisasm", {
+            code: code,
+          })
+          .then((response) => {
+            setAsm(response.data);
+            console.log(response.data);
+            setLoading(false);
+          })
+          .catch((error) => {
+            console.error(error);
+            setLoading(false);
+          });
+      }
+    } else if (language == "cpp") {
+      if (variable === "ASM") {
+        axios
+          .post("http://localhost:5000/runcodecpp", {
+            code: code,
+          })
+          .then((response) => {
+            setAsm(response.data);
+            console.log(response.data);
+            setLoading(false);
+          })
+          .catch((error) => {
+            console.error(error);
+            setLoading(false);
+          });
+      } else if (variable === "DISASM") {
+        axios
+          .post("http://localhost:5000/runcodedisasmcpp", {
+            code: code,
+          })
+          .then((response) => {
+            setAsm(response.data);
+            console.log(response.data);
+            setLoading(false);
+          })
+          .catch((error) => {
+            console.error(error);
+            setLoading(false);
+          });
+      }
     }
   };
 
