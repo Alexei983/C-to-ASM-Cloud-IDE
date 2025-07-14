@@ -1,9 +1,7 @@
 	.file	"code.cpp"
 	.intel_syntax noprefix
 	.text
-#APP
 	.globl _ZSt21ios_base_library_initv
-#NO_APP
 	.section	.text._ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE12_Alloc_hiderC2EPcRKS3_.isra.0,"axG",@progbits,_ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEC5IS3_EEPKcRKS3_,comdat
 	.align 2
 	.p2align 4

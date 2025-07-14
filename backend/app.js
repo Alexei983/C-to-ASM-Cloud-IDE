@@ -23,13 +23,13 @@ app.post("/runcode", async (req, res) => {
       }
     });
 
-    const { stdout, stderr } = await execAsync(
-      `docker run --rm \
-      -v "${workdir}:/app" \
-      --workdir /app \
-      gcc \
-      bash -c "gcc -S -O2 -fverbose-asm code.c -o code.s"`,
-    );
+    const { stdout, stderr } = await execAsync(`
+      docker run --rm \
+        -v "${workdir}:/app" \
+        --workdir /app \
+        gcc \
+        bash -c "gcc -S -O2 -masm=intel -fno-optimize-sibling-calls -fno-inline code.c -o code.s && sed '/^\\s*#/d; s/#.*\$//' code.s > code_clean.s"
+    `);
 
     if (stderr) {
       console.error("⚠️ stderr:", stderr);
@@ -59,7 +59,7 @@ app.post("/runcodecpp", async (req, res) => {
       -v "${workdir}:/app" \
       --workdir /app \
       gcc \
-      bash -c "gcc -x c++ code.cpp -S -lstdc++ -o codecpp.s"`,
+      bash -c "gcc -x c++ -O2 -masm=intel -fno-optimize-sibling-calls -fno-inline code.cpp -S -o codecpp.s && sed '/^\\s*#/d; s/#.*\$//' codecpp.s > codecpp_clean.s"`,
     );
 
     if (stderr) {
@@ -81,13 +81,13 @@ app.post("/runcodedisasm", async (req, res) => {
   try {
     await fs.writeFile(`${workdir}/code.c`, value);
 
-    const { stdout, stderr } = await execAsync(
-      `docker run --rm \
+    const { stdout, stderr } = await execAsync(`
+      docker run --rm \
       -v "${workdir}:/app" \
       --workdir /app \
       gcc \
-      bash -c "gcc -g -O2 code.c -o program && objdump -d program > disasm.s"`,
-    );
+      bash -c "gcc -g -O2 code.c -o program && objdump -d -Mintel -C program > disasm.s"
+    `);
 
     if (stderr) {
       console.error(`⚠️ stderr: ${stderr}`);
@@ -110,10 +110,10 @@ app.post("/runcodedisasmcpp", async (req, res) => {
 
     const { stdout, stderr } = await execAsync(
       `docker run --rm \
-      -v "${workdir}:/app" \
-      --workdir /app \
-      gcc \
-      bash -c "gcc code.cpp -lstdc++ -o main && objdump -d main > disasmcpp.s"`,
+        -v "${workdir}:/app" \
+        --workdir /app \
+        gcc \
+        bash -c "g++ -g -O2 code.cpp -o main && objdump -d -Mintel -C main > disasmcpp.s"`,
     );
 
     if (stderr) {

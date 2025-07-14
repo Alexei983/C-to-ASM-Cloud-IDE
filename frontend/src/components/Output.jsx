@@ -6,8 +6,9 @@ import {
   MenuItem,
   MenuList,
   Text,
-  VStack,
   Spinner,
+  VStack,
+  Flex,
 } from "@chakra-ui/react";
 import axios from "axios";
 import { useState } from "react";
@@ -21,128 +22,98 @@ const Output = ({ language, value }) => {
 
   const onRun = (code) => {
     setLoading(true);
-    if (language == "c") {
-      if (variable === "ASM") {
-        axios
-          .post("http://localhost:5000/runcode", {
-            code: code,
-          })
-          .then((response) => {
-            setAsm(response.data);
-            console.log(response.data);
-            setLoading(false);
-          })
-          .catch((error) => {
-            console.error(error);
-            setLoading(false);
-          });
-      } else if (variable === "DISASM") {
-        axios
-          .post("http://localhost:5000/runcodedisasm", {
-            code: code,
-          })
-          .then((response) => {
-            setAsm(response.data);
-            console.log(response.data);
-            setLoading(false);
-          })
-          .catch((error) => {
-            console.error(error);
-            setLoading(false);
-          });
-      }
-    } else if (language == "cpp") {
-      if (variable === "ASM") {
-        axios
-          .post("http://localhost:5000/runcodecpp", {
-            code: code,
-          })
-          .then((response) => {
-            setAsm(response.data);
-            console.log(response.data);
-            setLoading(false);
-          })
-          .catch((error) => {
-            console.error(error);
-            setLoading(false);
-          });
-      } else if (variable === "DISASM") {
-        axios
-          .post("http://localhost:5000/runcodedisasmcpp", {
-            code: code,
-          })
-          .then((response) => {
-            setAsm(response.data);
-            console.log(response.data);
-            setLoading(false);
-          })
-          .catch((error) => {
-            console.error(error);
-            setLoading(false);
-          });
-      }
-    }
+    const endpointMap = {
+      c: {
+        ASM: "runcode",
+        DISASM: "runcodedisasm",
+      },
+      cpp: {
+        ASM: "runcodecpp",
+        DISASM: "runcodedisasmcpp",
+      },
+    };
+
+    axios
+      .post(`http://localhost:5000/${endpointMap[language][variable]}`, {
+        code,
+      })
+      .then((res) => {
+        setAsm(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoading(false);
+      });
   };
 
   return (
-    <>
+    <Box w="100%" h="100%" m={0} p={0}>
       {loading ? (
-        <VStack colorPalette="teal">
-          <Spinner color="colorPalette.600" />
-          <Text color="colorPalette.600">Loading...</Text>
-        </VStack>
+        <Flex align="center" justify="center" w="100%" h="100%">
+          <VStack>
+            <Spinner color="blue.500" />
+            <Text>Compiling...</Text>
+          </VStack>
+        </Flex>
       ) : (
-        <Box w="50%">
-          <Text mb={2} fontSize="lg">
-            Output
-          </Text>
-          <Button
-            variant="outline"
-            colorScheme="green"
-            mb={4}
-            onClick={() => onRun(value)}
+        <Flex direction="column" w="100%" h="100%" m={0} p={0}>
+          <Flex
+            justify="space-between"
+            align="center"
+            h="48px"
+            px={4}
+            borderBottom="1px solid"
+            borderColor="gray.300"
           >
-            Run Code
-          </Button>
+            <Text fontSize="md" fontWeight="medium">
+              Output
+            </Text>
+            <Flex gap={2}>
+              <Button
+                size="sm"
+                mb={1}
+                colorScheme="blue"
+                onClick={() => onRun(value)}
+              >
+                Compile
+              </Button>
+              <Menu>
+                <MenuButton as={Button} size="sm">
+                  {variable}
+                </MenuButton>
+                <MenuList>
+                  <MenuItem onClick={() => setVariable("ASM")}>ASM</MenuItem>
+                  <MenuItem onClick={() => setVariable("DISASM")}>
+                    DISASM
+                  </MenuItem>
+                </MenuList>
+              </Menu>
+            </Flex>
+          </Flex>
 
-          <Menu isLazy>
-            <MenuButton mt="-5" ml="3" as={Button}>
-              {variable}
-            </MenuButton>
-            <MenuList>
-              <MenuItem onClick={() => setVariable("ASM")}>ASM</MenuItem>
-              <MenuItem onClick={() => setVariable("DISASM")}>DISASM</MenuItem>
-            </MenuList>
-          </Menu>
-
-          <Box
-            height="75vh"
-            overflow="auto"
-            border="1px solid"
-            borderColor="gray.600"
-            borderRadius="md"
-            bg="gray.800"
-          >
-            {asm === "" ? (
-              ""
-            ) : (
+          <Box flex="1" overflow="auto" bg="gray.900" color="white" m={0} p={4}>
+            {asm ? (
               <SyntaxHighlighter
-                customStyle={{ fontSize: "14px", lineHeight: "1.4" }}
-                language={variable === "ASM" ? "nasm" : "text"}
+                // language="nasm"
                 style={materialDark}
+                customStyle={{
+                  background: "transparent",
+                  margin: 0,
+                  padding: 0,
+                  fontSize: "14px",
+                  lineHeight: "1.4",
+                }}
               >
                 {asm}
               </SyntaxHighlighter>
-              /*
-            <pre style={{ fontFamily: 'monospace', fontSize: '0.875rem', whiteSpace: 'pre-wrap' }}>
-              {asm}
-            </pre>
-            */
+            ) : (
+              <Text color="gray.500">No output yet</Text>
             )}
           </Box>
-        </Box>
+        </Flex>
       )}
-    </>
+    </Box>
   );
 };
 
