@@ -92,7 +92,16 @@ const Output = ({ language, value }) => {
             </Flex>
           </Flex>
 
-          <Box flex="1" overflow="auto" bg="gray.900" color="white" m={0} p={4}>
+          <Box
+            flex="1"
+            overflow="auto"
+            bg="gray.900"
+            color="white"
+            m={0}
+            pt={4}
+            pl={4}
+            pb={10}
+          >
             {asm ? (
               <SyntaxHighlighter
                 // language="nasm"
